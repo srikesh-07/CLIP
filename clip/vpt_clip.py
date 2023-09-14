@@ -52,17 +52,23 @@ class PromptedTransformer(Transformer):
 
     def train(self, mode: bool = True):
         super().train(mode)
-        # self.resblocks.eval()
+        self.training = mode
+
+        self.resblocks.eval()
+        self.resblocks.requires_grad_(False)
+
+        self.prompt_dropout.requires_grad_(mode)
+        self.prompt_embeddings.requires_grad_(mode)
+        if hasattr(self, "deep_prompt_embeddings"):
+          self.deep_prompt_embeddings.requires_grad_(mode)
+
         if mode:
             self.prompt_dropout.train()
-            self.prompt_embeddings.requires_grad = True
-            if hasattr(self, "deep_prompt_embeddings"):
-              self.deep_prompt_embeddings.requires_grad = True
         else:
+            self.resblocks.eval()
             self.prompt_dropout.eval()
-            self.prompt_embeddings.requires_grad = False
-            if hasattr(self, "deep_prompt_embeddings"):
-              self.deep_prompt_embeddings.requires_grad = False
+
+        return self
 
     def incorporate_prompt(self, x: torch.Tensor):
         B = x.shape[0]
@@ -144,8 +150,12 @@ class PromptedVisionTransformer(VisionTransformer):
 
     def train(self, mode: bool = True):
         super().train(False)
+        self.requires_grad_(False)
         if mode:
+            self.training = mode
+            self.transformer.requires_grad_(mode)
             self.transformer.train(mode)
+        return self
 
 
 class PromptedVisualCLIP(CLIP):
@@ -197,8 +207,13 @@ class PromptedVisualCLIP(CLIP):
 
     def train(self, mode: bool = True):
         super().train(False)
+        self.requires_grad_(False)
         if mode:
+            self.training = mode
+            self.visual.requires_grad_(mode)
             self.visual.train(mode)
+        return self
+            
 
 def convert_weights(model: nn.Module):
     """Convert applicable model parameters to fp16"""
