@@ -22,13 +22,13 @@ class PromptedTransformer(Transformer):
                  **kwargs):
         super().__init__(**kwargs)
         self.num_tokens = num_tokens
-        self.weight_init = weight_init
+        # self.weight_init = weight_init
         self.location = location
         self.deep = deep
 
         self.prompt_dropout = torch.nn.Dropout(dropout)
 
-        if self.prompt_config.INITIATION == "random":
+        if weight_init == "random":
             val = math.sqrt(6. / float(3 * reduce(mul, self.patch_embed.patch_size, 1) + self.embed_dim))  # noqa
 
             self.prompt_embeddings = nn.Parameter(torch.zeros(
@@ -129,11 +129,11 @@ class PromptedVisualCLIP(CLIP):
                  transformer_heads: int,
                  transformer_layers: int,
                  # vpt
-                 num_tokens: int,
-                 weight_init: str,
-                 location: str,
-                 deep: bool,
-                 dropout: float,
+                 num_tokens: int = NUM_TOKENS,
+                 weight_init: str = INITIATION,
+                 location: str = LOCATION,
+                 deep: bool = DEEP,
+                 dropout: float = DROPOUT,
                  ):
         super().__init__(embed_dim=embed_dim,
                          image_resolution=image_resolution,
@@ -147,6 +147,7 @@ class PromptedVisualCLIP(CLIP):
                          transformer_layers=transformer_layers
                          )
         vision_heads = vision_width // 64
+        print("Loaded VPT CLIP..")
         self.visual = PromptedVisionTransformer(input_resolution=image_resolution,
                                                 patch_size=vision_patch_size,
                                                 width=vision_width,
