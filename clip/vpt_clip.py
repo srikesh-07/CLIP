@@ -209,9 +209,18 @@ class PromptedVisualCLIP(CLIP):
         super().train(False)
         self.requires_grad_(False)
         if mode:
+            print("Loading CLIP in Training Mode")
             self.training = mode
             self.visual.requires_grad_(mode)
             self.visual.train(mode)
+        print("\n\nTotal Parameters of Model: ", sum(p.numel() for p in model.parameters()))
+        print("Trainable Parameters of Model: ", sum(p.numel() for p in model.parameters() if p.requires_grad))
+        print("\n\nTrainable Parameters: ")
+        count = 1
+        for name, p in model.named_parameters():
+            if p.requires_grad:
+                print(f"{count} - {name}")
+                count += 1
         return self
             
 
