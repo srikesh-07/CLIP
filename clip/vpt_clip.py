@@ -85,11 +85,11 @@ class PromptedTransformer(Transformer):
 
     def forward(self, x: torch.Tensor): #(patch_size x B x width)
         # print(f"Input Shape: {x.shape}")
-        x = torch.permute(x, [1, 0, 2]) # (B x patch_size_embed x width)
+        x = x.permute([1, 0, 2]) # (B x patch_size_embed x width)
         # print(f"Before Prompt Shape: {x.shape}")
         x = self.incorporate_prompt(x)
         # print(f"After Prompt Shape: {x.shape}")
-        x = torch.permute(x, [1, 0, 2]) #(patch_size x B x width)
+        x = x.permute([1, 0, 2]) #(patch_size x B x width)
         # print(f"After Resizing Prompt Shape: {x.shape}")
 
         if self.deep:
@@ -100,7 +100,7 @@ class PromptedTransformer(Transformer):
             B = x.shape[1]
             # print(f"Batch Size {B}")
             for block_id in range(1, self.layers):
-                x = torch.permute(x, [1, 0, 2])
+                x = x.permute([1, 0, 2])
                 # print(f"Before Deep Prompt Shape: {x.shape}")
                 x = torch.cat((
                     x[:, :1, :],
@@ -110,7 +110,7 @@ class PromptedTransformer(Transformer):
                     x[:, (1 + self.num_tokens):, :]
                 ), dim=1)
                 # print(f"After Deep Prompt Shape: {x.shape}")
-                x = torch.permute(x, [1, 0, 2])
+                x = x.permute([1, 0, 2])
                 # print(f"Input Block Shape: {x.shape}")
                 with torch.no_grad():
                   x = self.resblocks[block_id](x)
